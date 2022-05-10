@@ -1,0 +1,91 @@
+---
+title: "Students' Enrollment in Primary Education"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+library("ggplot2")
+library("shiny")
+library("maptools")
+library("scales")
+library("RColorBrewer")
+library("tidyverse")
+library("flexdashboard")
+library("plotrix")
+library("sf")
+library("tmap")
+library("tmaptools")
+library("leaflet")
+library("dplyr")
+library("plotly")
+options(scipen = 999)
+mymap=st_read("C:/Users/dawns/AppData/Roaming/SPB_Data/DataVis_Project/maps-master/States/Admin2.shp",stringsAsFactors=FALSE)
+enr_data=read.csv("C:/Users/dawns/Downloads/enrollment.csv")
+map_and_enr=inner_join(mymap,enr_data)
+
+pop_data=read.csv("C:/Users/dawns/Downloads/actual_pop.csv")
+map_and_pop=inner_join(mymap,pop_data)
+
+general=read.csv("C:/Users/dawns/Downloads/enrollment_general.csv")
+sc=read.csv("C:/Users/dawns/Downloads/enrollment_sc.csv")
+st=read.csv("C:/Users/dawns/Downloads/enrollment_st.csv")
+enr_total=data.frame(Year=general$Year,General=general$Total,SC=sc$Total,ST=st$Total)
+enr_pop=read.csv("C:/Users/dawns/Downloads/enr_pop_regr.csv")
+
+```
+
+## Column {data-width=400}
+
+### **State-wise** Enrollment of students  
+
+```{r}
+tm_shape(map_and_enr)+tm_polygons("Total.Enrollment",id="ST_NM",pallete="RdPu")+tm_text("ST_NM",size="AREA",root=5)
+tmap_mode("view")
+tmap_last()
+
+```
+
+## Column {data-width=300 .tabset}
+
+### **All Categories**
+
+```{r}
+ggplotly(ggplot(data=enr_total,aes(Year,group=1))+geom_line(aes(y=General,color="General"))+geom_point(aes(y=General,color="General"))+geom_line(aes(y=SC,color="Schedule Caste"))+geom_point(aes(y=SC,color="Schedule Caste"))+geom_line(aes(y=ST,color="Schedule Tribe"))+geom_point(aes(y=ST,color="Schedule Tribe"))+scale_color_manual("Categories",values=c("red","blue","green"),breaks=c("General","Schedule Caste","Schedule Tribe"))+scale_y_continuous("Students Enrolled",limits=c(0,1500))+theme_minimal()+theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)))
+
+```
+
+### General
+
+```{r}
+ggplotly(ggplot(data=general,aes(Year,group=1))+geom_line(aes(y=Male,color="Male"))+geom_point(aes(y=Male,color="Male"))+geom_line(aes(y=Female,color="Female"))+geom_point(aes(y=Female,color="Female"))+scale_color_manual("Gender",values=c("blue","dark magenta"),breaks=c("Male","Female"))+scale_y_continuous("Students Enrolled",limits=c(450,800)+theme_minimal())+theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)))
+
+```
+
+### Scheduled Caste
+
+```{r}
+ggplotly(ggplot(data=sc,aes(Year,group=1))+geom_line(aes(y=Male,color="Male"))+geom_point(aes(y=Male,color="Male"))+geom_line(aes(y=Female,color="Female"))+geom_point(aes(y=Female,color="Female"))+scale_color_manual("Gender",values=c("blue","dark magenta"),breaks=c("Male","Female"))+scale_y_continuous("Students Enrolled",limits=c(90,200)+theme_minimal())+theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)))
+
+```
+
+### Scheduled Tribe
+
+```{r}
+ggplotly(ggplot(data=st,aes(Year,group=1))+geom_line(aes(y=Male,color="Male"))+geom_point(aes(y=Male,color="Male"))+geom_line(aes(y=Female,color="Female"))+geom_point(aes(y=Female,color="Female"))+scale_color_manual("Gender",values=c("blue","dark magenta"),breaks=c("Male","Female"))+scale_y_continuous("Students Enrolled",limits=c(40,100))+theme_minimal()+theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)))
+
+```
+
+## Column {data-width=300}
+
+### Enrollment and Population(Age Group 6-10 years) analysis
+```{r}
+lm(enr_pop$Enrollment~enr_pop$Population,data=enr_pop)
+```
+
+### Regression Plot
+```{r}
+ggplotly(ggplot(enr_pop,aes(Population, Enrollment))+stat_summary(fun.data= mean_cl_normal)+geom_smooth(method='lm',formula=y~x))
+```

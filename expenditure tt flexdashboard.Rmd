@@ -1,0 +1,99 @@
+---
+title: "Expenditure and Number of Trained Teachers in Primary Education"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library("sf")
+library("ggplot2")
+library("tmap")
+library("tmaptools")
+library("leaflet")
+library("dplyr")
+library("highcharter")
+library("plotrix")
+library("shiny")
+library("maptools")
+library("scales")
+library("RColorBrewer")
+library("tidyverse")
+library("plotly")
+
+# Expenditure highcharter
+expen_file = read.csv(file = "D:/Chitteshwari/VIT/Fall Semester '21/Data Visualization/Data Vis Project (J Component)/Expenditure - Sheet2.csv", header = TRUE, sep = ",")
+attach(expen_file)
+
+#Trained teachers state map
+tt_file = read.csv("D:/Chitteshwari/VIT/Fall Semester '21/Data Visualization/Data Vis Project (J Component)/Trained Teachers csv.csv")
+mymap=st_read("C:/Users/dawns/AppData/Roaming/SPB_Data/DataVis_Project/maps-master/States/Admin2.shp", stringsAsFactors=FALSE)
+map_and_data2=inner_join(mymap,tt_file)
+
+```
+
+## Column {data-width=400}
+
+### Total Expenditure
+
+```{r}
+highchart() %>% 
+  hc_yAxis_multiples(
+    list(lineWidth = 3, lineColor='blue', title=list(text="In Crores")),
+    list(lineWidth = 3, lineColor="green", title=list(text="As % of GDP"), opposite = TRUE)
+  ) %>% 
+  hc_add_series(data = Total..in.Crore., color='blue', type = "column") %>% 
+  hc_add_series(data = Total....of.GDP., color='green', type = "line", yAxis = 1) %>%
+  hc_xAxis(categories = Year, title = list(text = "Years"))
+
+```
+
+## Column {data-width=400}
+
+### Trained teachers
+
+```{r}
+tm_shape(map_and_data2) +
+  tm_polygons("Primary.Schools", id = "ST_NM", palette = "Blues")
+tmap_mode("view")
+tmap_last()
+
+```
+
+## Column {data-width=300, .tabset}
+
+### Division of expenditure between centre and states for the year 2011-12
+
+```{r}
+data1=c(113170.83,35993.94)
+lab=c("States/UTs","Centre")
+color=c("#00B1D2FF","#FDDB27FF")
+pie3D(data1,labels=data1,explode=0.1,main="2011-2012",col =color,border="black")
+legend("topright",c("States/UTs","Centre"),cex=0.8,inset=0.02,fill=color)
+
+```
+
+### Division of expenditure between centre and states for the year 2012-13
+
+```{r}
+data2=c(140145.92,44504.71)
+lab=c("States/UTs","Centre")
+color=c("#00B1D2FF","#FDDB27FF")
+pie3D(data2,labels=data2,explode=0.1,main="2012-2013",col=color,border="black")
+legend("topright",c("States/UTs","Centre"),cex=0.8,inset=0.02,fill=color)
+
+```
+
+### Division of expenditure between centre and states for the year 2013-14
+
+```{r}
+data3=c(156165.65,51262.97)
+lab=c("States/UTs","Centre")
+color=c("#00B1D2FF","#FDDB27FF")
+pie3D(data3,labels=data3,explode=0.1,main="2013-2014",col=color,border="black")
+legend("topright",c("States/UTs","Centre"),cex=0.8,inset=0.02,fill=color)
+
+```
+

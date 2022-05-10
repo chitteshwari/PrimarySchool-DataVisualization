@@ -1,0 +1,122 @@
+---
+title: "Gender Parity Index in Primary Education"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+#Libraries
+library(flexdashboard)
+library("sf")
+library("ggplot2")
+library("tmap")
+library("tmaptools")
+library("leaflet")
+library("dplyr")
+library("highcharter")
+library("plotrix")
+library("shiny")
+library("maptools")
+library("scales")
+library("RColorBrewer")
+library("tidyverse")
+library("plotly")
+
+#Creating data for gpi teachers state wise
+data<-read.csv("C:/Users/dawns/Downloads/Visual Decoders Dataset - gpi teachers state wise (1).csv")
+map<-st_read("C:/Users/dawns/AppData/Roaming/SPB_Data/DataVis_Project/maps-master/States/Admin2.shp", stringsAsFactors=FALSE)
+map_and_data=inner_join(map,data)
+
+#Importing data for correlation test
+gpi_students<-read.csv("C:/Users/dawns/Downloads/Visual Decoders Dataset - GPI in Students.csv")
+gpi_teachers<-read.csv("C:/Users/dawns/Downloads/Visual Decoders Dataset - gpi year wise.csv")
+
+```
+
+## Column {data-width=400}
+
+
+### Gender Parity Index of students
+
+```{r}
+#Gender parity index of students
+
+#create data
+year<-rep(c("1990","2000","2005","2006","2007",
+             "2008","2009","2010","2011","2012",
+             "2013","2014"),each=3)
+caste<-rep(c("General","SC","ST"),times=12)
+gpi=c(0.75,0.69,0.65,
+      0.82,0.80,0.73,
+      0.94,0.87,0.91,
+      0.94,0.88,0.92,
+      0.98,0.99,0.96,
+      0.99,0.99,0.97,
+      1.00,1.00,0.98,
+      1.01,1.01,1.00,
+      1.01,1.02,0.98,
+      1.02,1.02,0.98,
+      1.03,1.02,0.98,
+      1.03,1.02,0.98)
+df=data.frame(year,caste,gpi)
+
+#Using ggplot2 package
+library(ggplot2)
+
+#Using ggplot function
+sample_graph1=ggplot(df,aes(x=year,y=gpi,fill=caste))+
+  geom_bar(stat="identity",color="black",position="dodge")+
+  scale_fill_brewer()+
+  theme_bw()+
+  labs(title="Gender Parity index of Students from the year 1990 to 2014")
+ggplotly(sample_graph1)
+```
+
+### Gender Parity Index of teachers- year wise
+
+```{r}
+#Number of female teachers per hundred male teachers year wise
+
+#create data
+year=c("1950","1960","1970","1980","1990",
+       "2000","2005","2006","2007","2008",
+       "2009","2010","2011")
+ratio=c(20,21,27,33,41,55,65,66,
+        80,73,84,76,79)
+df<-data.frame(year,ratio)
+
+#Using the library ggplot2
+library(ggplot2)
+
+#Plotting the graph
+sample_graph2=ggplot(data=df,aes(x=year,y=ratio))+
+  geom_bar(stat="identity",color="black",fill="#FF6666")+
+  theme_bw()+
+  labs(title="Gender Parity Index of Teachers from the year 1950 to 2011",x="Year",y="Number of Female Teachers/100 Male Teachers")
+ggplotly(sample_graph2)
+
+```
+
+## Column {data-width=400}
+
+### Gender Parity Index of teachers- state wise
+
+```{r}
+#Plotting using tmaps
+tm_shape(map_and_data)+
+  tm_polygons("GPI",id="ST_NM",palette="Reds")+
+  tm_text("ST_NM",size="AREA",root=5)
+tmap_mode("view")
+tmap_last()
+```
+
+### Correlation between GPI values of teachers and students
+
+```{r}
+result=cor.test(gpi_students$Primary..I.V.,gpi_teachers$Primary,use="complete.obs")
+result
+ 
+print("GPI of teachers increases with the increase in GPI of students")
+```

@@ -1,0 +1,111 @@
+---
+title: "Students' Dropout and Population in Primary Age Group"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+library("ggplot2")
+library("shiny")
+library("maptools")
+library("scales")
+library("RColorBrewer")
+library("tidyverse")
+library("flexdashboard")
+library("plotrix")
+library("sf")
+library("tmap")
+library("tmaptools")
+library("leaflet")
+library("dplyr")
+library("plotly")
+
+options(scipen = 999)
+mymap=st_read("C:/Users/dawns/AppData/Roaming/SPB_Data/DataVis_Project/maps-master/States/Admin2.shp",stringsAsFactors=FALSE)
+pop_data=read.csv("C:/Users/dawns/Downloads/actual_pop.csv")
+map_and_pop=inner_join(mymap,pop_data)
+
+general=read.csv("C:/Users/dawns/Downloads/enrollment_general.csv")
+sc=read.csv("C:/Users/dawns/Downloads/enrollment_sc.csv")
+st=read.csv("C:/Users/dawns/Downloads/enrollment_st.csv")
+enr_total=data.frame(Year=general$Year,General=general$Total,SC=sc$Total,ST=st$Total)
+
+drop_data=read.csv("C:/Users/dawns/Downloads/droupout.csv")
+legends=drop_data$Category
+tot=sum(drop_data$Total)
+avg=tot/length(drop_data$Total)
+total=round((drop_data$Total/tot)*100,2)
+gen_tot=drop_data$Boys[1]+drop_data$Girls[1]
+sc_tot=drop_data$Boys[2]+drop_data$Girls[2]
+st_tot=drop_data$Boys[3]+drop_data$Girls[3]
+gen_gender=c((drop_data$Boys[1]/gen_tot)*100,(drop_data$Girls[1]/gen_tot)*100)
+sc_gender=c((drop_data$Boys[2]/sc_tot)*100,(drop_data$Girls[2]/sc_tot)*100)
+st_gender=c((drop_data$Boys[3]/st_tot)*100,(drop_data$Girls[3]/st_tot)*100)
+
+enr_12_14=round(c(general$Male[8]/general$Female[8],general$Male[9]/general$Female[9],general$Male[10]/general$Female[10]),2)
+drop_12_14=c(5.62,4.67,4.34)
+enr_drp=data.frame(Category=general$Year[8:10],Enrollment=enr_12_14,Dropout=drop_12_14)
+```
+
+## Column {data-width=200}
+### **General** Category Droupout
+```{r}
+valueBox(drop_data$Total[1],icon="fa-arrow-alt-circle-down",color="green")
+
+```
+
+### **Scheduled Caste** Category Droupout
+```{r}
+valueBox(drop_data$Total[2],icon="fa-arrow-alt-circle-down",color="blue")
+
+```
+
+### **Scheduled Tribe** Category Droupout
+```{r}
+valueBox(drop_data$Total[3],icon="fa-arrow-alt-circle-down",color="red")
+
+```
+
+## Column {data-width=300 .tabset}
+### General
+```{r}
+pie3D(gen_gender,labels=c(drop_data$Boys[1],drop_data$Girls[1]),col=brewer.pal(2,"Set1"),clockwise = TRUE,explode = 0.1)
+legend("topright",c("Boys","Girls"),fill=brewer.pal(2,"Set1"))
+
+```
+
+### Scheduled Castes
+```{r}
+pie3D(sc_gender,labels=c(drop_data$Boys[2],drop_data$Girls[2]),col=brewer.pal(2,"Set1"),clockwise = TRUE,explode = 0.1)
+legend("topright",c("Boys","Girls"),fill=brewer.pal(2,"Set1"))
+
+```
+
+### Scheduled Tribes
+```{r}
+pie3D(st_gender,labels=c(drop_data$Boys[3],drop_data$Girls[3]),col=brewer.pal(2,"Set1"),clockwise = TRUE,explode = 0.1)
+legend("topright",c("Boys","Girls"),fill=brewer.pal(2,"Set1"))
+
+```
+
+
+## Column{data-width=300}
+### **Correlation** between Student Enrollment & Dropout for 2012-2014
+```{r}
+cor.test(enr_drp$Enrollment,enr_drp$Dropout)
+```
+
+### Inference
+A correlation value of 0.2(~0) suggests that although Student Dropout rate and Enrollment rate have positive correlation, it's not significant enough to be influential on each other
+
+## Row {data-width=300}
+### State-wise Population of children in **6-10** age group 
+
+```{r}
+tm_shape(map_and_pop)+tm_polygons("Total.Population",id="ST_NM")+tm_text("ST_NM",size="AREA",root=5)
+tmap_mode("view")
+tmap_last()
+
+```

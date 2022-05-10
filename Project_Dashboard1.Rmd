@@ -1,0 +1,68 @@
+---
+title: "Student-Teacher Ratio"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+    vertical_layout: fill
+    storyboard: true
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(ggplot2)
+library("sf")
+library("ggplot2")
+library("tmap")
+library("tmaptools")
+library("leaflet")
+library("dplyr")
+library(plotly)
+library(tidyverse)
+
+options(scipen = 999)
+ptr_state=read.csv("D:/Chitteshwari/VIT/Fall Semester '21/Data Visualization/Data Vis Project (J Component)/Pupil teacher ratio - state wise.csv")
+mymap=st_read("C:/Users/dawns/AppData/Roaming/SPB_Data/DataVis_Project/maps-master/States/Admin2.shp", stringsAsFactors=FALSE)
+map_and_data2=inner_join(mymap,ptr_state)
+
+ptry_file = read.csv(file = "D:/Chitteshwari/VIT/Fall Semester '21/Data Visualization/Data Vis Project (J Component)/Pupil_Teacher_Ratio - Sheet1.csv", header = TRUE, sep = ",")
+
+expen_file = read.csv(file = "D:/Chitteshwari/VIT/Fall Semester '21/Data Visualization/Data Vis Project (J Component)/Expenditure - Sheet2.csv", header = TRUE, sep = ",")
+
+```
+
+
+### Student Teacher Ratio - State-wise Comparison
+
+```{r}
+tm_shape(map_and_data2) +
+  tm_polygons("Primary.Schools", id = "ST_NM", palette = c("magenta", "darkmagenta"))
+tmap_mode("view")
+tmap_last()
+```
+
+***
+An decrease in the ratio means better quality education. Here, we notice that highly populated states like UP & Bihar have very high values whereas states like Mizoran, Himachal Pradesh, Tripura and Karnataka have the lowest values.
+
+
+### Student Teacher Ratio - Year-wise Comparison
+
+```{r}
+ptr = ggplot(data = ptry_file, aes(x= Year, y= Pupil_Teacher_Ratio)) + geom_bar(stat = "identity", width = 0.75, fill = "#51A0D5") + theme_classic() + geom_text(aes(label = Pupil_Teacher_Ratio)) + labs(title = "Pupil Teacher Ratio (Year-wise)") + scale_y_continuous(name = "Student Teacher Ratio") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + coord_flip()
+ggplotly(ptr)
+```
+
+***
+As the years progress, there is a noticeable decrease in the ratio, thereby indicating that we are moving towards better quality primary education.
+
+### Regression Analysis between Expenditure and Pupil Teacher Ratio
+
+``` {r}
+reg_year = c(ptry_file$Year[13], ptry_file$Year[14], ptry_file$Year[15])
+reg_ptr = c(ptry_file$Pupil_Teacher_Ratio[13], ptry_file$Pupil_Teacher_Ratio[14], ptry_file$Pupil_Teacher_Ratio[15])
+reg_data = data.frame(reg_year, reg_ptr, expen_file$Total..in.Crore.)
+r = ggplot(reg_data,aes(expen_file$Total..in.Crore., reg_ptr))+stat_summary(fun.data= mean_cl_normal)+geom_smooth(method='lm',formula=y~x)+labs(title="Regression to predict Pupil Teacher Ratio depending on Expenditure")+ scale_y_continuous(name = "Student Teacher Ratio") + scale_x_continuous(name = "Total Expenditure in Crores") + geom_bar(stat = "identity", width = 0.75, fill = "#51A0D5")
+ggplotly(r)
+```
+
+***
+Pupil Teacher Ratio improves with increase in expenditure from the government as it enables more hiring of teachers, better salary for them and therefore, less students being taught by a single teacher. Therefore, expenditure here has value.
